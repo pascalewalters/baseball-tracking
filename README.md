@@ -1,6 +1,6 @@
 # Baseball tracking during pitching ⚾️🐦
 
-**Step 1:** Baseball detection
+### Step 1: Baseball detection
 
 The bounding box for the baseball is determined using a pre-trained YOLOv3 network (MS COCO dataset has a class for sports ball).
 YOLOv3 is used because it is a small network that achieves good performance for detection.
@@ -16,7 +16,7 @@ python get_detections.py
 
 This generates a csv file of detections and an output video of the overlayed bounding boxes.
 
-**Step 2:** Baseball tracking and release point
+### Step 2: Baseball tracking and release point
 
 Assume for tracking that there is only one baseball in the video and that this baseball is being used for the pitch.
 Define the release point as the instant the bounding box of the baseball is above the player's bounding box.
@@ -25,5 +25,14 @@ Define the release point as the instant the bounding box of the baseball is abov
 
 The ball is missed in some detections. These are interpolated quadratically before the release point and linearly after the release point. These methods were selected based on qualitative results.
 
-**Step 3:** Spin rate and spin axis
+To run the tracking script:
+
+```
+python get_tracks.py
+```
+
+This generates a csv file of ball tracks with a column for the ball release point.
+It also produces a video with the bounding boxes of the ball, coloured pink if it is before the release point and yellow if it is after the release point.
+
+### Step 3: Spin rate and spin axis
 
