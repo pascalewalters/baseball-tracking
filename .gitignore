@@ -1,0 +1,5 @@
+__pycache__/
+config/yolov3.weights
+output.avi
+outpy.avi
+detections.csv
