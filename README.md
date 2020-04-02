@@ -4,7 +4,7 @@
 
 The bounding box for the baseball is determined using a pre-trained YOLOv3 network (MS COCO dataset has a class for sports ball).
 YOLOv3 is used because it is a small network that achieves good performance for detection.
-The architecture is well-known and has many implementations and pre-trained networks available ([Example](https://github.com/cfotache/pytorch_objectdetecttrack)).
+The architecture is well-known and has many implementations and pre-trained networks available ([example](https://github.com/cfotache/pytorch_objectdetecttrack)).
 Faster-RCNN could also be used, with potentially better results, as it works better for small objects.
 However, it would likely have slower inference time.
 
