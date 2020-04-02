@@ -36,3 +36,10 @@ It also produces a video with the bounding boxes of the ball, coloured pink if i
 
 ### Step 3: Spin rate and spin axis
 
+[Ijiri *et al.*](http://www.sic.shibaura-it.ac.jp/~ijiri/files/ijiri_spinEstimation_SIVP2017.pdf) propose a method for calculating the spin rate and spin direction of pitched baseballs independently.
+
+The spin rate is defined in terms of the spin period. This is the time it takes for the ball, as it is rotating, to return to a similar appearance as a previous time step. The spin rate would be the reciprocal of this spin period.
+
+The spin axis is calculated by performing texture registration. A frame of the ball is warped to a frame of a ball in a later frame, using orthagonal projection and 3D rotation.
+
+This work uses a weighting function to remove the effects of illumination on the ball.
