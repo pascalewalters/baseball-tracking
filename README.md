@@ -21,7 +21,7 @@ This generates a csv file of detections and an output video of the overlayed bou
 Assume for tracking that there is only one baseball in the video and that this baseball is being used for the pitch.
 Define the release point as the instant the bounding box of the baseball is above the player's bounding box.
 
-![release point](img/release_point.png)
+![release point](img/release_point.gif)
 
 The ball is missed in some detections. These are interpolated quadratically before the release point and linearly after the release point. These methods were selected based on qualitative results.
 
