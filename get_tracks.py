@@ -1,6 +1,7 @@
 import pandas as pd
 import cv2
 import numpy as np
+import argparse
 
 
 def draw_box(row, frame, colour):
@@ -12,8 +13,17 @@ def draw_box(row, frame, colour):
 	cv2.rectangle(frame, (x1, y1), (x1 + box_w, y1 + box_h), colour, 2)
 
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--input-video', '-i', help = 'Path to the input video', required = True)
+parser.add_argument('--input-csv', help = 'Path to the CSV file of detections', required = True)
+parser.add_argument('--output-csv', '-o', help = 'Path to the output CSV track file', required = True)
+parser.add_argument('--save-video', action = 'store_true', help = 'Store output detections in a video')
+parser.add_argument('--config-dir', help = 'Path to directory that contains model weights', default = 'config')
+
+args = parser.parse_args()
+
 # Read in detections
-detections_file = 'detections.csv'
+detections_file = args.input_csv
 df = pd.read_csv(detections_file, index_col = 0)
 
 baseball_detections = df.loc[df['class'] == 'sports ball']
@@ -60,12 +70,13 @@ after_release = after_release.interpolate(method = 'linear')
 baseball_detections = pd.concat([before_release, after_release], ignore_index = True)
 
 # Read in video
-videopath = '../videos/slomo_1568156854_1_Cam3.mp4'
+videopath = args.input_video
 vid = cv2.VideoCapture(videopath)
 ret, frame = vid.read()
 
-out = cv2.VideoWriter('ball_track1.avi',
-	cv2.VideoWriter_fourcc('M','J','P','G'), 30, (frame.shape[1], frame.shape[0]))
+if args.save_video:
+	out = cv2.VideoWriter('ball_track1.avi',
+		cv2.VideoWriter_fourcc('M','J','P','G'), 30, (frame.shape[1], frame.shape[0]))
 
 frame_count = 0
 rows = []
@@ -84,15 +95,17 @@ while(ret):
 		rows.append([frame_count, not (frame_count <= release_frame), 
 			row['bb_left'].values[0], row['bb_top'].values[0],
 			row['bb_width'].values[0], row['bb_height'].values[0]])
-			
-	out.write(frame)
+	
+	if args.save_video:		
+		out.write(frame)
 	frame_count += 1
 	
 	ret, frame = vid.read()
 	
 vid.release()
-out.release()
+if args.save_video:
+	out.release()
 
 df = pd.DataFrame(rows, columns = ['frame', 'ball_released', 'bb_left', 'bb_top', 'bb_width', 'bb_height'])
-df.to_csv('ball_track.csv')
+df.to_csv(args.output_csv)
 

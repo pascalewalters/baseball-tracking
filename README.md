@@ -11,10 +11,15 @@ However, it would likely have slower inference time.
 To run the detections script:
 
 ```
-python get_detections.py
+cd config/
+./download_weights.sh
+cd ..
+python get_detections.py -i <path to input video> -o <path to output csv>
 ```
 
 This generates a csv file of detections and an output video of the overlayed bounding boxes.
+
+If the detections are generated on the CPU the inference time can be quite long.
 
 ### Step 2: Baseball tracking and release point
 
@@ -28,7 +33,7 @@ The ball is missed in some detections. These are interpolated quadratically befo
 To run the tracking script:
 
 ```
-python get_tracks.py
+python get_tracks.py -i <path to input video> --input-csv <path to detections csv> -o <path to output csv>
 ```
 
 This generates a csv file of ball tracks with a column for the ball release point.

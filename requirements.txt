@@ -1,2 +1,5 @@
 opencv
 pandas
+scipy
+pytorch
+torchvision

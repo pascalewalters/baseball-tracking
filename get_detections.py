@@ -15,24 +15,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from PIL import Image
+import argparse
 
-config_path='config/yolov3.cfg'
-weights_path='config/yolov3.weights'
-class_path='config/coco.names'
-img_size=416
-conf_thres=0.8
-nms_thres=0.4
-
-# Load model and weights
-model = Darknet(config_path, img_size=img_size)
-model.load_weights(weights_path)
-model.eval()
-classes = utils.load_classes(class_path)
-Tensor = torch.FloatTensor
 
 def detect_image(img):
 	# scale and pad image
-	ratio = min(img_size/img.size[0], img_size/img.size[1])
+	ratio = min(img_size / img.size[0], img_size / img.size[1])
 	imw = round(img.size[0] * ratio)
 	imh = round(img.size[1] * ratio)
 	img_transforms = transforms.Compose([ transforms.Resize((imh, imw)),
@@ -42,22 +30,50 @@ def detect_image(img):
 		 ])
 	# convert image to Tensor
 	image_tensor = img_transforms(img).float()
-	image_tensor = image_tensor.unsqueeze_(0)
-	input_img = Variable(image_tensor.type(Tensor))
+	image_tensor = image_tensor.unsqueeze_(0).to(device = device)
 	# run inference on the model and get detections
 	with torch.no_grad():
-		detections = model(input_img)
+		detections = model(image_tensor)
 		detections = utils.non_max_suppression(detections, 80, conf_thres, nms_thres)
 	return detections[0]
 
 
-colours = {'person': (255, 0, 255), 'sports ball': (255, 255, 0), 'baseball glove': (0, 255, 255)}
+parser = argparse.ArgumentParser()
+parser.add_argument('--input-video', '-i', help = 'Path to the video to analyze', required = True)
+parser.add_argument('--output-csv', '-o', help = 'Path to the output CSV file', required = True)
+parser.add_argument('--save-video', action = 'store_true', help = 'Store output detections in a video')
+parser.add_argument('--config-dir', help = 'Path to directory that contains model weights', default = 'config')
 
-videopath = '../videos/slomo_1568156854_1_Cam3.mp4'
+args = parser.parse_args()
+
+config_path = os.path.join(args.config_dir, 'yolov3.cfg')
+weights_path = os.path.join(args.config_dir, 'yolov3.weights')
+class_path = os.path.join(args.config_dir, 'coco.names')
+img_size = 416
+conf_thres = 0.8
+nms_thres = 0.4
+
+num_gpus = torch.cuda.device_count()
+device = 'cuda' if num_gpus > 0 else 'cpu'
+
+# Load model and weights
+model = Darknet(config_path, img_size=img_size)
+model.load_weights(weights_path)
+model.to(device = device)
+model.eval()
+classes = utils.load_classes(class_path)
+Tensor = torch.FloatTensor
+
+colours = {'person': (255, 0, 255), 'sports ball': (255, 255, 0), 'baseball glove': (0, 255, 255),
+			'baseball bat': (125, 255, 0)}
+
+videopath = args.input_video
 vid = cv2.VideoCapture(videopath)
 ret, frame = vid.read()
 
-out = cv2.VideoWriter('output.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 30, (frame.shape[1], frame.shape[0]))
+if args.save_video:
+	out = cv2.VideoWriter('output.avi', 
+		cv2.VideoWriter_fourcc('M','J','P','G'), 30, (frame.shape[1], frame.shape[0]))
 
 frame_count = 0
 rows = []
@@ -66,7 +82,7 @@ while(ret):
 # for ii in range(40):
 	frame1 = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 	pilimg = Image.fromarray(frame1)
-	detections = detect_image(pilimg)
+	detections = detect_image(pilimg).cpu()
 
 	img = np.array(pilimg)
 	pad_x = max(img.shape[0] - img.shape[1], 0) * (img_size / max(img.shape))
@@ -83,22 +99,26 @@ while(ret):
 			x1 = ((x1 - pad_x // 2) / unpad_w) * img.shape[1]
 
 			c = classes[int(cls_pred)]
+			if c not in colours:
+				continue
 			colour = colours[c]
 
 			cv2.rectangle(frame, (x1, y1), (x1 + box_w, y1 + box_h), colour, 2)
 			cv2.putText(frame, c, (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 1, colour)
 
 			rows.append([frame_count, c, x1.numpy(), y1.numpy(), box_w.numpy(), box_h.numpy()])
-			
-	out.write(frame)
+	
+	if args.save_video:		
+		out.write(frame)
 	frame_count += 1
 	
 	ret, frame = vid.read()
 	
 vid.release()
-out.release()
+if args.save_video:
+	out.release()
 
 df = pd.DataFrame(rows, columns = ['frame', 'class', 'bb_left', 'bb_top', 'bb_width', 'bb_height'])
-df.to_csv('detections.csv')
+df.to_csv(args.output_csv)
 
 
