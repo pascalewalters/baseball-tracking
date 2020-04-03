@@ -2,3 +2,4 @@ __pycache__/
 config/yolov3.weights
 *.avi
 *.csv
+ball_track/
