@@ -1,3 +1,10 @@
+################################
+# Pascale Walters
+# pascale.walters@uwaterloo.ca
+################################
+
+# This script is for extracting cropped frames of the ball
+
 import pandas as pd
 import cv2
 
@@ -11,6 +18,7 @@ def crop_box(row, frame):
 	return frame[y1:y1 + box_h, x1:x1 + box_w]
 
 
+# Read in ball track csv file
 track_file = 'ball_track.csv'
 df = pd.read_csv(track_file, index_col = 0)
 
