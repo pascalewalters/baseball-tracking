@@ -87,11 +87,11 @@ vid = cv2.VideoCapture(videopath)
 ret, frame = vid.read()
 
 output_csv_path = os.path.join(args.output_dir, 
-		os.path.basename(videopath).replace('.mp4', '.csv'))
+		os.path.basename(videopath).replace('.mp4', '_detections.csv'))
 
 if args.save_video:
 	output_video_path = os.path.join(args.output_dir, 
-		os.path.basename(videopath).replace('.mp4', '.avi'))
+		os.path.basename(videopath).replace('.mp4', '_detections.avi'))
 	out = cv2.VideoWriter(output_video_path, 
 		cv2.VideoWriter_fourcc('M','J','P','G'), 30, (frame.shape[1], frame.shape[0]))
 
