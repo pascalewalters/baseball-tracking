@@ -8,13 +8,17 @@ The architecture is well-known and has many implementations and pre-trained netw
 Faster-RCNN could also be used, with potentially better results, as it works better for small objects.
 However, it would likely have slower inference time.
 
+A deep learning approach was selected because it achieves better performance than classical image processing techinques. It is also more likely to work from a variety of view points and illuminations, due to the wide variety of training samples in the dataset. Further improvements to the detection method could be done with a larger, more accurate detection network, which would also increase training and inference time. 
+
+As seen in the demo video, the network does not perform well when the ball passes in front of the pitcher's leg. This is likely because there is not much contrast between the white ball and the white pants.
+
 To run the detections script:
 
 ```
 cd config/
 ./download_weights.sh
 cd ..
-python get_detections.py -i <path to input video> -o <path to output csv>
+python get_detections.py -i <path to input video> --save-video
 ```
 
 This generates a csv file of detections and an output video of the overlayed bounding boxes.
