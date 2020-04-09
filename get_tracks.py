@@ -1,7 +1,13 @@
+################################
+# Pascale Walters
+# pascale.walters@uwaterloo.ca
+################################
+
 import pandas as pd
 import cv2
 import numpy as np
 import argparse
+import os
 
 
 def draw_box(row, frame, colour):
@@ -15,15 +21,23 @@ def draw_box(row, frame, colour):
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--input-video', '-i', help = 'Path to the input video', required = True)
-parser.add_argument('--input-csv', help = 'Path to the CSV file of detections', required = True)
-parser.add_argument('--output-csv', '-o', help = 'Path to the output CSV track file', required = True)
+parser.add_argument('--output-dir', '-o', help = 'Path to the output directory', default = 'output')
 parser.add_argument('--save-video', action = 'store_true', help = 'Store output detections in a video')
-parser.add_argument('--config-dir', help = 'Path to directory that contains model weights', default = 'config')
 
 args = parser.parse_args()
 
+# Ensure that the input video is in .mp4 format
+if 'mp4' not in os.path.basename(args.input_video):
+	print('Input video is not in mp4 format.')
+	exit()
+
+video_name = os.path.basename(args.input_video).replace('.mp4', '')
+
 # Read in detections
-detections_file = args.input_csv
+detections_file = os.path.join(args.output_dir, video_name + '_detections.csv')
+if not os.path.exists(detections_file):
+	print('Cannot find detections file {}'.format(detections_file))
+	exit()
 df = pd.read_csv(detections_file, index_col = 0)
 
 baseball_detections = df.loc[df['class'] == 'sports ball']
@@ -75,18 +89,19 @@ vid = cv2.VideoCapture(videopath)
 ret, frame = vid.read()
 
 if args.save_video:
-	out = cv2.VideoWriter('ball_track1.avi',
+	output_video = os.path.join(args.output_dir, video_name + '_ball_track.avi')
+	out = cv2.VideoWriter(output_video,
 		cv2.VideoWriter_fourcc('M','J','P','G'), 30, (frame.shape[1], frame.shape[0]))
 
 frame_count = 0
 rows = []
 
 while(ret):
-
 	if frame_count in baseball_frames:
 		row = baseball_detections.loc[baseball_detections['frame'] == frame_count]
 		assert len(row) == 1
 
+		# Draw the bounding box around the baseball
 		if frame_count <= release_frame:
 			draw_box(row, frame, (255, 255, 0))
 		else:
@@ -106,6 +121,9 @@ vid.release()
 if args.save_video:
 	out.release()
 
-df = pd.DataFrame(rows, columns = ['frame', 'ball_released', 'bb_left', 'bb_top', 'bb_width', 'bb_height'])
-df.to_csv(args.output_csv)
+# Write the ball track to a csv
+output_csv = os.path.join(args.output_dir, video_name + '_ball_track.csv')
+df = pd.DataFrame(rows, 
+	columns = ['frame', 'ball_released', 'bb_left', 'bb_top', 'bb_width', 'bb_height'])
+df.to_csv(output_csv)
 

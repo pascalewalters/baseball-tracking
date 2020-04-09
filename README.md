@@ -32,16 +32,16 @@ Define the release point as the instant the bounding box of the baseball is abov
 
 ![release point](img/release_point.gif)
 
-The ball is missed in some detections. These are interpolated quadratically before the release point and linearly after the release point. These methods were selected based on qualitative results.
+The ball is missed in some detections. These are interpolated quadratically before the release point and linearly after the release point. These methods were selected based on qualitative results. For some pitches, this interpolation is not particularly effective, which may be due to the camera angle or the pitch type. Further research in this area would be interesting.
 
 To run the tracking script:
 
 ```
-python get_tracks.py -i <path to input video> --input-csv <path to detections csv> -o <path to output csv>
+python get_tracks.py -i <path to input video> --save-video
 ```
 
 This generates a csv file of ball tracks with a column for the ball release point.
-It also produces a video with the bounding boxes of the ball, coloured pink if it is before the release point and yellow if it is after the release point.
+It also produces a video with the bounding boxes of the ball, coloured blue if it is before the release point and yellow if it is after the release point.
 
 ### Step 3: Spin rate and spin axis
 
